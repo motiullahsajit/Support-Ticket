@@ -77,6 +77,36 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleUnassignExecutive = async (ticketId: number) => {
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/tickets/${ticketId}/manage`,
+        { executive_id: null },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      fetchData();
+    } catch (error) {
+      console.error("Error unassigning executive:", error);
+    }
+  };
+
+  const handleStatusChange = async (ticketId: number, newStatus: string) => {
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/tickets/${ticketId}/manage`,
+        { status: newStatus },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      fetchData();
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
+  };
+
   const handleRoleChange = async (userId: string, newRole: string) => {
     try {
       await axios.put(
@@ -110,16 +140,34 @@ export default function AdminDashboard() {
   const ticketRows = tickets.map((ticket: any) => [
     ticket.subject,
     ticket.description,
-    ticket.status,
-    ticket.customer_id.toString(),
-    ticket.executive_id ? ticket.executive_id.toString() : "Unassigned",
-    <Button
-      key={ticket.id}
-      onClick={() => setAssignModal({ open: true, ticketId: ticket.id })}
-      disabled={!!ticket.executive_id}
-    >
-      Assign Executive
-    </Button>,
+    ticket.customer_username.toString(),
+    ticket.executive_username
+      ? ticket.executive_username.toString()
+      : "Unassigned",
+    <Select
+      label="Status"
+      labelHidden
+      value={ticket.status}
+      onChange={(value) => handleStatusChange(ticket.id, value)}
+      options={[
+        { label: "Open", value: "open" },
+        { label: "Resolved", value: "resolved" },
+        { label: "Closed", value: "closed" },
+      ]}
+    />,
+    <div style={{ display: "flex", gap: "8px" }}>
+      {!ticket.executive_id ? (
+        <Button
+          onClick={() => setAssignModal({ open: true, ticketId: ticket.id })}
+        >
+          Assign Executive
+        </Button>
+      ) : (
+        <Button onClick={() => handleUnassignExecutive(ticket.id)}>
+          Unassign Executive
+        </Button>
+      )}
+    </div>,
   ]);
 
   const userRows = users.map((user: any) => [
@@ -128,6 +176,7 @@ export default function AdminDashboard() {
     <Select
       key={user.id}
       label="Role"
+      labelHidden
       value={user.role}
       onChange={(value: string) => handleRoleChange(user.id, value)}
       options={[
@@ -183,7 +232,7 @@ export default function AdminDashboard() {
                   "Subject",
                   "Description",
                   "Status",
-                  "Customer ID",
+                  "Customer",
                   "Executive",
                   "Action",
                 ]}

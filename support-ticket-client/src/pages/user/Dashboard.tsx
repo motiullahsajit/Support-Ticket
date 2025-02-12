@@ -10,6 +10,7 @@ import {
   TextField,
   Spinner,
   Text,
+  Icon,
 } from "@shopify/polaris";
 import axios from "axios";
 import { useAuthStore } from "../../store/authStore";
@@ -19,6 +20,8 @@ export default function UserDashboard() {
   const { user } = useAuthStore();
   const [tickets, setTickets] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [currentTicket, setCurrentTicket] = useState<any>(null);
   const [newTicket, setNewTicket] = useState({
     subject: "",
     description: "",
@@ -47,21 +50,62 @@ export default function UserDashboard() {
 
   const handleSubmit = async () => {
     try {
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/tickets`,
-        {
-          ...newTicket,
-          customer_id: user?.id,
-        },
+      if (isEditMode && currentTicket) {
+        await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/tickets/${currentTicket.id}`,
+          {
+            subject: newTicket.subject,
+            description: newTicket.description,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+      } else {
+        await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/tickets`,
+          {
+            ...newTicket,
+            customer_id: user?.id,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+      }
+
+      setIsModalOpen(false);
+      setNewTicket({ subject: "", description: "" });
+      setIsEditMode(false);
+      setCurrentTicket(null);
+      fetchTickets();
+    } catch (error) {
+      console.error("Error processing ticket:", error);
+    }
+  };
+
+  const handleEdit = (ticket: any) => {
+    setIsEditMode(true);
+    setCurrentTicket(ticket);
+    setNewTicket({ subject: ticket.subject, description: ticket.description });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (ticketId: number) => {
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/tickets/${ticketId}`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-      setIsModalOpen(false);
-      setNewTicket({ subject: "", description: "" });
       fetchTickets();
     } catch (error) {
-      console.error("Error creating ticket:", error);
+      console.error("Error deleting ticket:", error);
     }
   };
 
@@ -71,6 +115,10 @@ export default function UserDashboard() {
     ticket.status,
     new Date(ticket.created_at).toLocaleDateString(),
     ticket.executive_id ? "Assigned" : "Pending",
+    <div style={{ display: "flex", gap: "8px" }}>
+      <Button onClick={() => handleEdit(ticket)}>Edit</Button>
+      <Button onClick={() => handleDelete(ticket.id)}>Delete</Button>
+    </div>,
   ]);
 
   return (
@@ -116,13 +164,21 @@ export default function UserDashboard() {
               <Spinner size="large" accessibilityLabel="Loading tickets..." />
             ) : (
               <DataTable
-                columnContentTypes={["text", "text", "text", "text", "text"]}
+                columnContentTypes={[
+                  "text",
+                  "text",
+                  "text",
+                  "text",
+                  "text",
+                  "text",
+                ]}
                 headings={[
                   "Subject",
                   "Description",
                   "Status",
                   "Created At",
                   "Assignment",
+                  "Actions",
                 ]}
                 rows={rows}
               />
@@ -132,16 +188,26 @@ export default function UserDashboard() {
 
         <Modal
           open={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          title="Create New Support Ticket"
+          onClose={() => {
+            setIsModalOpen(false);
+            setIsEditMode(false);
+            setCurrentTicket(null);
+            setNewTicket({ subject: "", description: "" });
+          }}
+          title={isEditMode ? "Edit Ticket" : "Create New Support Ticket"}
           primaryAction={{
-            content: "Submit",
+            content: isEditMode ? "Update" : "Submit",
             onAction: handleSubmit,
           }}
           secondaryActions={[
             {
               content: "Cancel",
-              onAction: () => setIsModalOpen(false),
+              onAction: () => {
+                setIsModalOpen(false);
+                setIsEditMode(false);
+                setCurrentTicket(null);
+                setNewTicket({ subject: "", description: "" });
+              },
             },
           ]}
         >

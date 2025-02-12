@@ -34,8 +34,16 @@ router.get(
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const [tickets] = (await pool.query(
-        "SELECT * FROM tickets ORDER BY created_at DESC"
+        `SELECT 
+          tickets.*, 
+          customer.username AS customer_username, 
+          executive.username AS executive_username
+        FROM tickets
+        JOIN users AS customer ON tickets.customer_id = customer.id
+        LEFT JOIN users AS executive ON tickets.executive_id = executive.id
+        ORDER BY tickets.created_at DESC`
       )) as any;
+
       res.json(tickets);
     } catch (error) {
       console.error(error);
@@ -159,6 +167,39 @@ router.delete(
           .json({ message: "Not authorized or ticket not found" });
       }
       res.json({ message: "Ticket deleted successfully" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
+router.put(
+  "/:ticketId/manage",
+  auth,
+  authorize(["admin"]),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { executive_id, status } = req.body;
+      const ticketId = req.params.ticketId;
+
+      if (executive_id === null) {
+        await pool.query(
+          "UPDATE tickets SET executive_id = NULL WHERE id = ?",
+          [ticketId]
+        );
+        return res.json({ message: "Executive unassigned successfully" });
+      }
+
+      if (status) {
+        await pool.query("UPDATE tickets SET status = ? WHERE id = ?", [
+          status,
+          ticketId,
+        ]);
+        return res.json({ message: "Ticket status updated successfully" });
+      }
+
+      res.status(400).json({ message: "Invalid request" });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Server error" });
