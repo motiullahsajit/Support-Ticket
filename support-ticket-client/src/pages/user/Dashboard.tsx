@@ -10,7 +10,7 @@ import {
   TextField,
   Spinner,
   Text,
-  Icon,
+  Select,
 } from "@shopify/polaris";
 import axios from "axios";
 import { useAuthStore } from "../../store/authStore";
@@ -26,6 +26,8 @@ export default function UserDashboard() {
     subject: "",
     description: "",
   });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -109,7 +111,15 @@ export default function UserDashboard() {
     }
   };
 
-  const rows = tickets.map((ticket: any) => [
+  const filteredTickets = tickets.filter((ticket) => {
+    const matchesSearch =
+      ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ticket.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter ? ticket.status === statusFilter : true;
+    return matchesSearch && matchesStatus;
+  });
+
+  const rows = filteredTickets.map((ticket: any) => [
     ticket.subject,
     ticket.description,
     ticket.status,
@@ -149,6 +159,27 @@ export default function UserDashboard() {
               gap: "16px",
             }}
           >
+            <Select
+              label=""
+              labelHidden
+              value={statusFilter}
+              onChange={(value) => setStatusFilter(value)}
+              options={[
+                { label: "All Status", value: "" },
+                { label: "Open", value: "open" },
+                { label: "Resolved", value: "resolved" },
+                { label: "Closed", value: "closed" },
+              ]}
+            />
+            <TextField
+              label="Search"
+              labelHidden
+              placeholder="Search tickets..."
+              value={searchTerm}
+              onChange={(value) => setSearchTerm(value)}
+              autoComplete="off"
+            />
+
             <Button onClick={() => setIsModalOpen(true)}>
               Create New Ticket
             </Button>

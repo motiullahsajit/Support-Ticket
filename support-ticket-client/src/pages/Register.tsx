@@ -50,14 +50,24 @@ export default function Register() {
   const uploadImageToImgBB = async (imageFile: File): Promise<string> => {
     const formDataUpload = new FormData();
     formDataUpload.append("image", imageFile);
+
     try {
-      const response = await axios.post(
+      const response = await fetch(
         `https://api.imgbb.com/1/upload?key=${
           import.meta.env.VITE_IMGBB_API_KEY
         }`,
-        formDataUpload
+        {
+          method: "POST",
+          body: formDataUpload,
+        }
       );
-      return response.data.data.url;
+
+      if (!response.ok) {
+        throw new Error("Failed to upload image");
+      }
+
+      const data = await response.json();
+      return data.data.url;
     } catch (error) {
       console.error("Error uploading to ImgBB", error);
       throw error;
