@@ -74,20 +74,36 @@ support-ticket/
 7. **Access the Application**
    Open your browser and visit: [http://localhost:5173](http://localhost:5173)
 
-## 👤 User Roles
+## Pre-Registered User Accounts
+
+You can log in with the following pre-created accounts:
+
+- **Admin:**
+  - **Email:** admin@gmail.com
+  - **Password:** admin
+
+- **Executive:**
+  - **Email:** executive@gmail.com
+  - **Password:** executive
+
+- **User:**
+  - **Email:** user@gmail.com
+  - **Password:** user
+
+## User Roles
 
 - **Admin:** Can manage tickets, assign executives, and manage users.
 - **Executive:** Handles assigned tickets and updates ticket statuses.
 - **User:** Creates support tickets and tracks their progress.
 
-## 📂 Folder Structure
+## Folder Structure
 
 - **support-ticket-client:** React project with Polaris UI components.
 - **support-ticket-server:** Express server handling APIs, authentication, and database queries.
 - **database_setup.sql:** SQL file to create database tables.
 - **support_ticket_system.sql:** SQL dump of the full database.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend:** React, Polaris UI
 - **Backend:** Node.js, Express
