@@ -94,10 +94,22 @@ router.put(
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { executive_id } = req.body;
+      const ticketId = req.params.ticketId;
+
+      const [executive] = (await pool.query(
+        "SELECT * FROM users WHERE id = ? AND role = 'executive'",
+        [executive_id]
+      )) as any;
+
+      if (executive.length === 0) {
+        return res.status(400).json({ message: "Invalid executive ID" });
+      }
+
       await pool.query("UPDATE tickets SET executive_id = ? WHERE id = ?", [
         executive_id,
-        req.params.ticketId,
+        ticketId,
       ]);
+
       res.json({ message: "Executive assigned successfully" });
     } catch (error) {
       console.error(error);

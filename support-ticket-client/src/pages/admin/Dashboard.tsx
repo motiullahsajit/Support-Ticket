@@ -287,16 +287,23 @@ export default function AdminDashboard() {
 
         <Modal
           open={assignModal.open}
-          onClose={() => setAssignModal({ open: false, ticketId: null })}
+          onClose={() => {
+            setAssignModal({ open: false, ticketId: null });
+            setSelectedExecutive("");
+          }}
           title="Assign Executive"
           primaryAction={{
             content: "Assign",
             onAction: handleAssignExecutive,
+            disabled: !selectedExecutive,
           }}
           secondaryActions={[
             {
               content: "Cancel",
-              onAction: () => setAssignModal({ open: false, ticketId: null }),
+              onAction: () => {
+                setAssignModal({ open: false, ticketId: null });
+                setSelectedExecutive("");
+              },
             },
           ]}
         >
@@ -307,8 +314,9 @@ export default function AdminDashboard() {
                 label: exec.name,
                 value: exec.id.toString(),
               }))}
-              onChange={setSelectedExecutive}
+              onChange={(value) => setSelectedExecutive(value)}
               value={selectedExecutive}
+              placeholder="Select an executive"
             />
           </Modal.Section>
         </Modal>
