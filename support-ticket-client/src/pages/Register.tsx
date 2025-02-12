@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Page,
@@ -9,6 +9,7 @@ import {
   Text,
   Link,
   Banner,
+  Spinner,
 } from "@shopify/polaris";
 import axios from "axios";
 
@@ -20,15 +21,48 @@ export default function Register() {
     email: "",
     password: "",
     confirmPassword: "",
+    image_url: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [photoPrev, setPhotoPrev] = useState<string>("");
+  const [photo, setPhoto] = useState<File | undefined>(undefined);
 
   const handleChange = (value: string, id: string) => {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const changeImageHandler = (e: ChangeEvent<HTMLInputElement>) => {
+    const file: File | undefined = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          setPhotoPrev(reader.result);
+          setPhoto(file);
+        }
+      };
+    }
+  };
+
+  const uploadImageToImgBB = async (imageFile: File): Promise<string> => {
+    const formDataUpload = new FormData();
+    formDataUpload.append("image", imageFile);
+    try {
+      const response = await axios.post(
+        "https://api.imgbb.com/1/upload?key=a02776d30dbf5d3144e198ba292d1b5f",
+        formDataUpload
+      );
+      return response.data.data.url;
+    } catch (error) {
+      console.error("Error uploading to ImgBB", error);
+      throw error;
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -40,11 +74,18 @@ export default function Register() {
     }
 
     try {
-      await axios.post("http://localhost:3000/api/auth/register", {
+      let imageUrl = "";
+      if (photo) {
+        setUploading(true);
+        imageUrl = await uploadImageToImgBB(photo);
+        setUploading(false);
+      }
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
         name: formData.name,
         username: formData.username,
         email: formData.email,
         password: formData.password,
+        image_url: imageUrl,
       });
       navigate("/login");
     } catch (err: any) {
@@ -65,22 +106,19 @@ export default function Register() {
           </div>
           <form onSubmit={handleSubmit}>
             <FormLayout>
-              {error && <Banner title={error} />}
-
+              {error && <Banner title={error} status="critical" />}
               <TextField
                 label="Name *"
                 value={formData.name}
                 onChange={(value) => handleChange(value, "name")}
                 autoComplete="name"
               />
-
               <TextField
                 label="Username *"
                 value={formData.username}
                 onChange={(value) => handleChange(value, "username")}
                 autoComplete="username"
               />
-
               <TextField
                 label="Email *"
                 type="email"
@@ -88,7 +126,6 @@ export default function Register() {
                 onChange={(value) => handleChange(value, "email")}
                 autoComplete="email"
               />
-
               <TextField
                 label="Password *"
                 type="password"
@@ -96,7 +133,6 @@ export default function Register() {
                 onChange={(value) => handleChange(value, "password")}
                 autoComplete="new-password"
               />
-
               <TextField
                 label="Confirm Password *"
                 type="password"
@@ -104,6 +140,45 @@ export default function Register() {
                 onChange={(value) => handleChange(value, "confirmPassword")}
                 autoComplete="new-password"
               />
+
+              <div>
+                <label
+                  htmlFor="image-upload"
+                  style={{ marginBottom: "0.5rem", display: "block" }}
+                >
+                  Upload Profile Image
+                </label>
+                <input
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={changeImageHandler}
+                />
+                {uploading && (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      marginTop: "8px",
+                    }}
+                  >
+                    <Spinner
+                      size="small"
+                      accessibilityLabel="Uploading image..."
+                    />
+                    <Text variant="bodyMd" style={{ marginLeft: "8px" }}>
+                      Uploading image...
+                    </Text>
+                  </div>
+                )}
+                {photoPrev && (
+                  <img
+                    src={photoPrev}
+                    alt="Uploaded Preview"
+                    style={{ width: "100px", marginTop: "10px" }}
+                  />
+                )}
+              </div>
 
               <Button submit loading={loading}>
                 Register

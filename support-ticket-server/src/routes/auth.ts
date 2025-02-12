@@ -1,33 +1,32 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 import { pool } from "../db.js";
+
+dotenv.config();
 
 const router = express.Router();
 
-// Register
-router.post("/register", async (req, res) => {
+router.post("/register", async (req: Request, res: Response) => {
   try {
-    const { name, username, email, password } = req.body;
+    const { name, username, email, password, image_url } = req.body;
 
-    // Check if user exists
-    const [existingUsers] = await pool.query(
+    const [existingUsers] = (await pool.query(
       "SELECT * FROM users WHERE email = ? OR username = ?",
       [email, username]
-    );
+    )) as any[];
 
     if (existingUsers.length > 0) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
-    const [result] = await pool.query(
-      "INSERT INTO users (name, username, email, password) VALUES (?, ?, ?, ?)",
-      [name, username, email, hashedPassword]
+    await pool.query(
+      "INSERT INTO users (name, username, email, password, image_url) VALUES (?, ?, ?, ?, ?)",
+      [name, username, email, hashedPassword, image_url || null]
     );
 
     res.status(201).json({ message: "User registered successfully" });
@@ -37,15 +36,13 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// Login
-router.post("/login", async (req, res) => {
+router.post("/login", async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    // Check if user exists
-    const [users] = await pool.query("SELECT * FROM users WHERE email = ?", [
+    const [users] = (await pool.query("SELECT * FROM users WHERE email = ?", [
       email,
-    ]);
+    ])) as any[];
 
     if (users.length === 0) {
       return res.status(400).json({ message: "Invalid credentials" });
@@ -53,21 +50,20 @@ router.post("/login", async (req, res) => {
 
     const user = users[0];
 
-    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
-
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // Create JWT token
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET || "your-secret-key",
-      { expiresIn: "1d" }
-    );
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error("JWT_SECRET is not defined in environment variables");
+    }
 
-    // Remove password from response
+    const token = jwt.sign({ id: user.id, role: user.role }, secret, {
+      expiresIn: "1d",
+    });
+
     delete user.password;
 
     res.json({
@@ -75,7 +71,7 @@ router.post("/login", async (req, res) => {
       user,
     });
   } catch (error) {
-    console.error(error);
+    console.error("error", error);
     res.status(500).json({ message: "Server error" });
   }
 });

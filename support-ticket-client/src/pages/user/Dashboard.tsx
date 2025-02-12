@@ -31,9 +31,9 @@ export default function UserDashboard() {
   const fetchTickets = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:3000/api/tickets/user/${user?.user?.id}`,
+        `${import.meta.env.VITE_API_URL}/api/tickets/user/${user?.id}`,
         {
-          headers: { Authorization: `Bearer ${user?.token}` },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
       setTickets(response.data);
@@ -47,13 +47,13 @@ export default function UserDashboard() {
   const handleSubmit = async () => {
     try {
       await axios.post(
-        "http://localhost:3000/api/tickets",
+        `${import.meta.env.VITE_API_URL}/api/tickets`,
         {
           ...newTicket,
-          customer_id: user?.user?.id,
+          customer_id: user?.id,
         },
         {
-          headers: { Authorization: `Bearer ${user?.token}` },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
       setIsModalOpen(false);

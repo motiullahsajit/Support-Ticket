@@ -15,31 +15,32 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import ExecutiveDashboard from "./pages/executive/Dashboard";
 import { useAuthStore } from "./store/authStore";
 
-function PrivateRoute({
-  children,
-  allowedRoles,
-}: {
+interface PrivateRouteProps {
   children: JSX.Element;
   allowedRoles: string[];
-}) {
+}
+
+function PrivateRoute({ children, allowedRoles }: PrivateRouteProps) {
   const { isAuthenticated, user } = useAuthStore();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
-  console.log("here", user, allowedRoles);
-  if (user && !allowedRoles.includes(user?.user?.role)) {
-    return <Navigate to="/admin" />;
+  if (user && !allowedRoles.includes(user.role)) {
+    const redirectMap: { [key: string]: string } = {
+      admin: "/admin",
+      executive: "/executive",
+      user: "/dashboard",
+    };
+    return <Navigate to={redirectMap[user.role] || "/login"} />;
   }
-  console.log("here after", user?.user?.role, allowedRoles);
-
   return children;
 }
 
 function App() {
   return (
     <AppProvider i18n={enTranslations}>
-      <Router>
+      <Router future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

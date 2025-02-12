@@ -10,10 +10,8 @@ import {
   Select,
 } from "@shopify/polaris";
 import axios from "axios";
-import { useAuthStore } from "../../store/authStore";
 
 export default function AdminDashboard() {
-  const { user } = useAuthStore();
   const [selected, setSelected] = useState(0);
   const [tickets, setTickets] = useState([]);
   const [users, setUsers] = useState([]);
@@ -32,11 +30,11 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     try {
       const [ticketsRes, usersRes] = await Promise.all([
-        axios.get("http://localhost:3000/api/tickets", {
-          headers: { Authorization: `Bearer ${user?.token}` },
+        axios.get(`${import.meta.env.VITE_API_URL}/api/tickets`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }),
-        axios.get("http://localhost:3000/api/users", {
-          headers: { Authorization: `Bearer ${user?.token}` },
+        axios.get(`${import.meta.env.VITE_API_URL}/api/users`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }),
       ]);
 
@@ -55,10 +53,12 @@ export default function AdminDashboard() {
   const handleAssignExecutive = async () => {
     try {
       await axios.put(
-        `http://localhost:3000/api/tickets/${assignModal.ticketId}/assign`,
+        `${import.meta.env.VITE_API_URL}/api/tickets/${
+          assignModal.ticketId
+        }/assign`,
         { executive_id: selectedExecutive },
         {
-          headers: { Authorization: `Bearer ${user?.token}` },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
       setAssignModal({ open: false, ticketId: null });
@@ -71,10 +71,10 @@ export default function AdminDashboard() {
   const handleRoleChange = async (userId: string, newRole: string) => {
     try {
       await axios.put(
-        `http://localhost:3000/api/users/${userId}/role`,
+        `${import.meta.env.VITE_API_URL}/api/users/${userId}/role`,
         { role: newRole },
         {
-          headers: { Authorization: `Bearer ${user?.token}` },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
       fetchData();

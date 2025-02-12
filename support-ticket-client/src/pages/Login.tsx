@@ -8,7 +8,7 @@ import {
   Button,
   Text,
   Link,
-  Banner, // Used for error display
+  Banner,
 } from "@shopify/polaris";
 import { useAuthStore } from "../store/authStore";
 
@@ -39,7 +39,6 @@ export default function Login() {
   return (
     <Page>
       <div className="max-w-md mx-auto mt-20">
-        {/* Use the "sectioned" prop on Card instead of Card.Section */}
         <Card>
           <div>
             <Text variant="headingLg" as="h1">
@@ -49,7 +48,6 @@ export default function Login() {
 
           <form onSubmit={handleSubmit}>
             <FormLayout>
-              {/* Replace error text with a Banner or remove the color prop */}
               {error && <Banner title={error} />}
 
               <TextField
@@ -68,7 +66,6 @@ export default function Login() {
                 autoComplete="current-password"
               />
 
-              {/* Remove the primary prop as it's not supported */}
               <Button submit loading={loading}>
                 Login
               </Button>
