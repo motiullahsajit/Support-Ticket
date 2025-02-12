@@ -9,8 +9,11 @@ import {
   Modal,
   Select,
   Spinner,
+  Text,
+  Box,
 } from "@shopify/polaris";
 import axios from "axios";
+import UserMenu from "../../components/UserMenu";
 
 interface AssignModalState {
   open: boolean;
@@ -136,15 +139,36 @@ export default function AdminDashboard() {
   ]);
 
   return (
-    <Page title="Admin Dashboard">
+    <Page>
+      <div
+        style={{
+          backgroundColor: "#f4f6f8",
+          padding: "16px",
+          borderBottom: "1px solid #e5e5e5",
+          marginBottom: "16px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Text as="h1" variant="headingXl">
+            Admin Dashboard
+          </Text>
+          <UserMenu />
+        </div>
+      </div>
       <Layout>
         <Layout.Section>
           <Card>
             <Tabs tabs={tabs} selected={selected} onSelect={setSelected} />
             {loading ? (
-              <Layout.Section>
+              <Box padding="200">
                 <Spinner size="large" accessibilityLabel="Loading data..." />
-              </Layout.Section>
+              </Box>
             ) : selected === 0 ? (
               <DataTable
                 columnContentTypes={[

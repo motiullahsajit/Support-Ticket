@@ -9,9 +9,11 @@ import {
   FormLayout,
   TextField,
   Spinner,
+  Text,
 } from "@shopify/polaris";
 import axios from "axios";
 import { useAuthStore } from "../../store/authStore";
+import UserMenu from "../../components/UserMenu";
 
 export default function UserDashboard() {
   const { user } = useAuthStore();
@@ -72,12 +74,41 @@ export default function UserDashboard() {
   ]);
 
   return (
-    <Page
-      title="My Support Tickets"
-      primaryAction={
-        <Button onClick={() => setIsModalOpen(true)}>Create New Ticket</Button>
-      }
-    >
+    <Page>
+      <div
+        style={{
+          backgroundColor: "#f4f6f8",
+          padding: "16px",
+          borderBottom: "1px solid #e5e5e5",
+          marginBottom: "16px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Text as="h1" variant="headingXl">
+            My Support Tickets
+          </Text>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "16px",
+            }}
+          >
+            <Button onClick={() => setIsModalOpen(true)}>
+              Create New Ticket
+            </Button>
+            <UserMenu />
+          </div>
+        </div>
+      </div>
+
       <Layout>
         <Layout.Section>
           <Card>

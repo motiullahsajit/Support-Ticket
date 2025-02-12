@@ -8,9 +8,11 @@ import {
   Modal,
   Select,
   Spinner,
+  Text,
 } from "@shopify/polaris";
 import axios from "axios";
 import { useAuthStore } from "../../store/authStore";
+import UserMenu from "../../components/UserMenu";
 
 export default function ExecutiveDashboard() {
   const { user } = useAuthStore();
@@ -80,7 +82,29 @@ export default function ExecutiveDashboard() {
   ]);
 
   return (
-    <Page title="Executive Dashboard - Assigned Tickets">
+    <Page>
+      <div
+        style={{
+          backgroundColor: "#f4f6f8",
+          padding: "16px",
+          borderBottom: "1px solid #e5e5e5",
+          marginBottom: "16px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Text as="h1" variant="headingXl">
+            Executive Dashboard
+          </Text>
+          <UserMenu />
+        </div>
+      </div>
+
       <Layout>
         <Layout.Section>
           <Card>
