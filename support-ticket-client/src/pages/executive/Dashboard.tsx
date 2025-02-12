@@ -7,16 +7,23 @@ import {
   Button,
   Modal,
   Select,
+  Spinner,
 } from "@shopify/polaris";
 import axios from "axios";
 import { useAuthStore } from "../../store/authStore";
 
 export default function ExecutiveDashboard() {
   const { user } = useAuthStore();
-  const [tickets, setTickets] = useState([]);
-  const [statusModal, setStatusModal] = useState({ open: false, ticket: null });
-  const [selectedStatus, setSelectedStatus] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [statusModal, setStatusModal] = useState<{
+    open: boolean;
+    ticket: any | null;
+  }>({
+    open: false,
+    ticket: null,
+  });
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     fetchAssignedTickets();
@@ -62,6 +69,7 @@ export default function ExecutiveDashboard() {
     ticket.status,
     new Date(ticket.created_at).toLocaleDateString(),
     <Button
+      key={ticket.id}
       onClick={() => {
         setSelectedStatus(ticket.status);
         setStatusModal({ open: true, ticket });
@@ -76,18 +84,21 @@ export default function ExecutiveDashboard() {
       <Layout>
         <Layout.Section>
           <Card>
-            <DataTable
-              columnContentTypes={["text", "text", "text", "text", "text"]}
-              headings={[
-                "Subject",
-                "Description",
-                "Status",
-                "Created At",
-                "Action",
-              ]}
-              rows={rows}
-              loading={loading}
-            />
+            {loading ? (
+              <Spinner size="large" accessibilityLabel="Loading tickets..." />
+            ) : (
+              <DataTable
+                columnContentTypes={["text", "text", "text", "text", "text"]}
+                headings={[
+                  "Subject",
+                  "Description",
+                  "Status",
+                  "Created At",
+                  "Action",
+                ]}
+                rows={rows}
+              />
+            )}
           </Card>
         </Layout.Section>
 

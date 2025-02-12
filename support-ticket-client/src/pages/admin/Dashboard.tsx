@@ -8,20 +8,26 @@ import {
   Button,
   Modal,
   Select,
+  Spinner,
 } from "@shopify/polaris";
 import axios from "axios";
 
+interface AssignModalState {
+  open: boolean;
+  ticketId: number | null;
+}
+
 export default function AdminDashboard() {
-  const [selected, setSelected] = useState(0);
-  const [tickets, setTickets] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [executives, setExecutives] = useState([]);
-  const [assignModal, setAssignModal] = useState({
+  const [selected, setSelected] = useState<number>(0);
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [executives, setExecutives] = useState<any[]>([]);
+  const [assignModal, setAssignModal] = useState<AssignModalState>({
     open: false,
     ticketId: null,
   });
-  const [selectedExecutive, setSelectedExecutive] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [selectedExecutive, setSelectedExecutive] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     fetchData();
@@ -102,9 +108,10 @@ export default function AdminDashboard() {
     ticket.subject,
     ticket.description,
     ticket.status,
-    ticket.customer_id,
-    ticket.executive_id || "Unassigned",
+    ticket.customer_id.toString(),
+    ticket.executive_id ? ticket.executive_id.toString() : "Unassigned",
     <Button
+      key={ticket.id}
       onClick={() => setAssignModal({ open: true, ticketId: ticket.id })}
       disabled={!!ticket.executive_id}
     >
@@ -116,8 +123,10 @@ export default function AdminDashboard() {
     user.name,
     user.email,
     <Select
+      key={user.id}
+      label="Role"
       value={user.role}
-      onChange={(value) => handleRoleChange(user.id, value)}
+      onChange={(value: string) => handleRoleChange(user.id, value)}
       options={[
         { label: "User", value: "user" },
         { label: "Executive", value: "executive" },
@@ -132,7 +141,11 @@ export default function AdminDashboard() {
         <Layout.Section>
           <Card>
             <Tabs tabs={tabs} selected={selected} onSelect={setSelected} />
-            {selected === 0 ? (
+            {loading ? (
+              <Layout.Section>
+                <Spinner size="large" accessibilityLabel="Loading data..." />
+              </Layout.Section>
+            ) : selected === 0 ? (
               <DataTable
                 columnContentTypes={[
                   "text",
@@ -151,14 +164,12 @@ export default function AdminDashboard() {
                   "Action",
                 ]}
                 rows={ticketRows}
-                loading={loading}
               />
             ) : (
               <DataTable
                 columnContentTypes={["text", "text", "text"]}
                 headings={["Name", "Email", "Role"]}
                 rows={userRows}
-                loading={loading}
               />
             )}
           </Card>

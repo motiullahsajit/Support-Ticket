@@ -52,7 +52,9 @@ export default function Register() {
     formDataUpload.append("image", imageFile);
     try {
       const response = await axios.post(
-        "https://api.imgbb.com/1/upload?key=a02776d30dbf5d3144e198ba292d1b5f",
+        `https://api.imgbb.com/1/upload?key=${
+          import.meta.env.VITE_IMGBB_API_KEY
+        }`,
         formDataUpload
       );
       return response.data.data.url;
@@ -106,7 +108,9 @@ export default function Register() {
           </div>
           <form onSubmit={handleSubmit}>
             <FormLayout>
-              {error && <Banner title={error} status="critical" />}
+              {error && (
+                <Banner title={error} {...({ status: "critical" } as any)} />
+              )}
               <TextField
                 label="Name *"
                 value={formData.name}
@@ -166,9 +170,11 @@ export default function Register() {
                       size="small"
                       accessibilityLabel="Uploading image..."
                     />
-                    <Text variant="bodyMd" style={{ marginLeft: "8px" }}>
-                      Uploading image...
-                    </Text>
+                    <div style={{ marginLeft: "8px" }}>
+                      <Text variant="bodyMd" as="p">
+                        Uploading image...
+                      </Text>
+                    </div>
                   </div>
                 )}
                 {photoPrev && (

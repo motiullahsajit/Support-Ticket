@@ -6,17 +6,16 @@ import {
   Button,
   DataTable,
   Modal,
-  Form,
   FormLayout,
   TextField,
-  Select,
+  Spinner,
 } from "@shopify/polaris";
 import axios from "axios";
 import { useAuthStore } from "../../store/authStore";
 
 export default function UserDashboard() {
   const { user } = useAuthStore();
-  const [tickets, setTickets] = useState([]);
+  const [tickets, setTickets] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTicket, setNewTicket] = useState({
     subject: "",
@@ -76,26 +75,27 @@ export default function UserDashboard() {
     <Page
       title="My Support Tickets"
       primaryAction={
-        <Button primary onClick={() => setIsModalOpen(true)}>
-          Create New Ticket
-        </Button>
+        <Button onClick={() => setIsModalOpen(true)}>Create New Ticket</Button>
       }
     >
       <Layout>
         <Layout.Section>
           <Card>
-            <DataTable
-              columnContentTypes={["text", "text", "text", "text", "text"]}
-              headings={[
-                "Subject",
-                "Description",
-                "Status",
-                "Created At",
-                "Assignment",
-              ]}
-              rows={rows}
-              loading={loading}
-            />
+            {loading ? (
+              <Spinner size="large" accessibilityLabel="Loading tickets..." />
+            ) : (
+              <DataTable
+                columnContentTypes={["text", "text", "text", "text", "text"]}
+                headings={[
+                  "Subject",
+                  "Description",
+                  "Status",
+                  "Created At",
+                  "Assignment",
+                ]}
+                rows={rows}
+              />
+            )}
           </Card>
         </Layout.Section>
 
